@@ -1,7 +1,7 @@
-import type { MenuItem } from "@/lib/data";
+import type { Extra } from "@/lib/data";
 
 // Прості SVG-ілюстрації для закусок і напоїв
-export default function FoodIcon({ icon, className }: { icon: NonNullable<MenuItem["icon"]>; className?: string }) {
+export default function FoodIcon({ icon, className }: { icon: Extra["icon"]; className?: string }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden>
       {icon === "fries" && (

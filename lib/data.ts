@@ -1,14 +1,13 @@
 // Усі дані закладу в одному місці. Позначене TODO — замінити справжніми даними з Google Maps.
 export const business = {
   name: "Пічка",
-  tagline: "Гаряча піца з печі — тягучий сир, тонке тісто, щедра начинка",
   phone: "+380 00 000 00 00", // TODO: справжній номер
   phoneHref: "tel:+380000000000", // TODO
   address: "м. Київ, Оболонський район", // TODO: точна адреса
-  hours: [{ days: "Щодня", time: "10:00 – 22:00" }], // TODO
+  hours: "щодня 10:00–22:00", // TODO
   googleMaps:
     "https://www.google.com/maps/place/%D0%9F%D1%96%D1%87%D0%BA%D0%B0/@50.5116387,30.4659339,18z/data=!4m6!3m5!1s0x40d4d35b2b6ad587:0xd888aa5829a5cf07!8m2!3d50.5117846!4d30.4666473!16s%2Fg%2F11mlvlt_2x",
-  instagram: "https://instagram.com/", // TODO
+  mapEmbed: "https://maps.google.com/maps?q=50.5117846,30.4666473&z=16&output=embed",
 };
 
 export const delivery = {
@@ -27,107 +26,98 @@ export const sizes: { id: Size; label: string }[] = [
   { id: "40", label: "40 см" },
 ];
 
-export type Category = "pizza" | "snacks" | "drinks";
-export const categories: { id: Category; label: string }[] = [
-  { id: "pizza", label: "Піца" },
-  { id: "snacks", label: "Закуски" },
-  { id: "drinks", label: "Напої" },
-];
+// Для конструктора «Збери свою»: ціна добавки за 30 см (40 см — у 1,5 раза дорожче)
+export const toppingInfo: Record<Topping, { label: string; price: number }> = {
+  pepperoni: { label: "Пепероні", price: 45 },
+  bacon: { label: "Бекон", price: 45 },
+  ham: { label: "Шинка", price: 40 },
+  mushroom: { label: "Печериці", price: 30 },
+  mozzarella: { label: "Моцарела", price: 40 },
+  blue: { label: "Дорблю", price: 50 },
+  tomato: { label: "Томати", price: 25 },
+  pepper: { label: "Перець", price: 25 },
+  olive: { label: "Оливки", price: 30 },
+  corn: { label: "Кукурудза", price: 20 },
+  pineapple: { label: "Ананас", price: 30 },
+  onion: { label: "Цибуля", price: 15 },
+  chili: { label: "Чилі", price: 15 },
+  basil: { label: "Базилік", price: 15 },
+};
+export const builder = {
+  base: { "30": 149, "40": 219 } as Record<Size, number>, // тісто + соус + моцарела
+  maxToppings: 6,
+};
+export const toppingPrice = (t: Topping, size: Size) =>
+  size === "40" ? Math.round((toppingInfo[t].price * 1.5) / 5) * 5 : toppingInfo[t].price;
 
-export type MenuItem = {
+export type Pizza = {
   id: string;
   name: string;
   description: string;
-  category: Category;
-  // для піци — ціна за кожен розмір, для решти — одна ціна
-  prices: Partial<Record<Size, number>> | number;
-  weight?: string;
-  toppings?: Topping[]; // з чого малюється SVG піци
-  icon?: "fries" | "nuggets" | "garlic" | "salad" | "cola" | "juice" | "water";
-  badge?: string;
-  spicy?: boolean;
+  prices: Record<Size, number>;
+  toppings: Topping[];
+  tag?: string;
 };
 
 // TODO: звірити меню та ціни з реальними
-export const menu: MenuItem[] = [
-  {
-    id: "margherita", name: "Маргарита", category: "pizza",
-    description: "Томатний соус, моцарела, свіжі томати та базилік. Класика, з якої все почалося.",
-    prices: { "30": 189, "40": 279 }, toppings: ["tomato", "basil", "mozzarella"],
-  },
-  {
-    id: "pepperoni", name: "Пепероні", category: "pizza",
-    description: "Томатний соус, моцарела та багато гострої ковбаски пепероні.",
-    prices: { "30": 239, "40": 339 }, toppings: ["pepperoni"], badge: "Хіт",
-  },
-  {
-    id: "four-cheese", name: "Чотири сири", category: "pizza",
-    description: "Вершковий соус, моцарела, дорблю, пармезан і чедер. Для тих, хто любить, коли тягнеться.",
-    prices: { "30": 259, "40": 369 }, toppings: ["mozzarella", "blue"],
-  },
-  {
-    id: "hawaii", name: "Гавайська", category: "pizza",
-    description: "Томатний соус, моцарела, шинка та соковитий ананас.",
-    prices: { "30": 229, "40": 329 }, toppings: ["ham", "pineapple"],
-  },
-  {
-    id: "hunter", name: "Мисливська", category: "pizza",
-    description: "Томатний соус, моцарела, мисливські ковбаски, бекон, цибуля та печериці.",
-    prices: { "30": 249, "40": 349 }, toppings: ["bacon", "mushroom", "onion"],
-  },
-  {
-    id: "mushroom", name: "Грибна", category: "pizza",
-    description: "Вершковий соус, моцарела, печериці, цибуля та зелень.",
-    prices: { "30": 219, "40": 319 }, toppings: ["mushroom", "onion", "basil"],
-  },
-  {
-    id: "diablo", name: "Дьябло", category: "pizza",
-    description: "Томатний соус, моцарела, пепероні, перець чилі та халапеньо. Гостро!",
-    prices: { "30": 249, "40": 349 }, toppings: ["pepperoni", "chili", "pepper"], spicy: true,
-  },
-  {
-    id: "veggie", name: "Овочева", category: "pizza",
-    description: "Томатний соус, моцарела, болгарський перець, кукурудза, оливки, томати.",
-    prices: { "30": 209, "40": 299 }, toppings: ["pepper", "corn", "olive", "tomato"], badge: "Новинка",
-  },
-  {
-    id: "fries", name: "Картопля фрі", category: "snacks",
-    description: "Хрустка, золотиста, з соусом на вибір.", prices: 89, weight: "150 г", icon: "fries",
-  },
-  {
-    id: "nuggets", name: "Курячі нагетси", category: "snacks",
-    description: "8 шматочків ніжного курячого філе в паніровці.", prices: 129, weight: "8 шт.", icon: "nuggets",
-  },
-  {
-    id: "garlic-bread", name: "Часникові хлібці", category: "snacks",
-    description: "З нашого тіста, з часниковим маслом і зеленню.", prices: 69, weight: "6 шт.", icon: "garlic",
-  },
-  {
-    id: "caesar", name: "Цезар з куркою", category: "snacks",
-    description: "Ромен, курка гриль, пармезан, грінки та соус цезар.", prices: 169, weight: "250 г", icon: "salad",
-  },
-  {
-    id: "cola", name: "Coca-Cola", category: "drinks",
-    description: "Охолоджена, 0,5 л.", prices: 45, weight: "0,5 л", icon: "cola",
-  },
-  {
-    id: "juice", name: "Сік Sandora", category: "drinks",
-    description: "Апельсин або яблуко, 0,95 л.", prices: 79, weight: "0,95 л", icon: "juice",
-  },
-  {
-    id: "water", name: "Вода Моршинська", category: "drinks",
-    description: "Негазована або слабогазована, 0,5 л.", prices: 30, weight: "0,5 л", icon: "water",
-  },
+export const pizzas: Pizza[] = [
+  { id: "margherita", name: "Маргарита", prices: { "30": 189, "40": 279 }, toppings: ["tomato", "basil", "mozzarella"],
+    description: "Томатний соус, моцарела, свіжі томати й базилік. Піца, з якої все почалося." },
+  { id: "pepperoni", name: "Пепероні", prices: { "30": 239, "40": 339 }, toppings: ["pepperoni"], tag: "хіт",
+    description: "Томатний соус, моцарела і пепероні, що закручується в хрусткі «чашечки»." },
+  { id: "four-cheese", name: "Чотири сири", prices: { "30": 259, "40": 369 }, toppings: ["mozzarella", "blue"],
+    description: "Вершковий соус, моцарела, дорблю, пармезан і чедер. Тягнеться до самої тарілки." },
+  { id: "hunter", name: "Мисливська", prices: { "30": 249, "40": 349 }, toppings: ["bacon", "mushroom", "onion"],
+    description: "Мисливські ковбаски, бекон, печериці й цибуля. Ситна, як вечеря після тренування." },
+  { id: "diablo", name: "Дьябло", prices: { "30": 249, "40": 349 }, toppings: ["pepperoni", "chili", "pepper"], tag: "гостра",
+    description: "Пепероні, чилі та халапеньо. Попереджали — не скаржтесь." },
+  { id: "hawaii", name: "Гавайська", prices: { "30": 229, "40": 329 }, toppings: ["ham", "pineapple"],
+    description: "Шинка й ананас. Вічна суперечка — а ви за чи проти?" },
+  { id: "mushroom", name: "Грибна", prices: { "30": 219, "40": 319 }, toppings: ["mushroom", "onion", "basil"],
+    description: "Вершковий соус, моцарела, печериці, цибуля та зелень." },
+  { id: "veggie", name: "Городня", prices: { "30": 209, "40": 299 }, toppings: ["pepper", "corn", "olive", "tomato"], tag: "новинка",
+    description: "Перець, кукурудза, оливки й томати — кольорова, як грядка в серпні." },
 ];
 
-export function priceOf(item: MenuItem, size?: Size): number | undefined {
-  if (typeof item.prices === "number") return item.prices;
-  return size ? item.prices[size] : undefined;
+export type Extra = {
+  id: string;
+  name: string;
+  note: string;
+  price: number;
+  icon: "fries" | "nuggets" | "garlic" | "salad" | "cola" | "juice" | "water";
+};
+
+export const extras: Extra[] = [
+  { id: "fries", name: "Картопля фрі", note: "150 г, соус на вибір", price: 89, icon: "fries" },
+  { id: "nuggets", name: "Нагетси", note: "8 шт.", price: 129, icon: "nuggets" },
+  { id: "garlic-bread", name: "Часникові хлібці", note: "6 шт., з нашого тіста", price: 69, icon: "garlic" },
+  { id: "caesar", name: "Цезар з куркою", note: "250 г", price: 169, icon: "salad" },
+  { id: "cola", name: "Coca-Cola", note: "0,5 л", price: 45, icon: "cola" },
+  { id: "juice", name: "Сік Sandora", note: "0,95 л", price: 79, icon: "juice" },
+  { id: "water", name: "Моршинська", note: "0,5 л", price: 30, icon: "water" },
+];
+
+// Рядок кошика: готова піца, своя піца (id "custom") або закуска/напій
+export type CartLine = { id: string; size?: Size; toppings?: Topping[]; qty: number };
+
+export const isTopping = (t: unknown): t is Topping => typeof t === "string" && t in toppingInfo;
+export const isSize = (s: unknown): s is Size => s === "30" || s === "40";
+
+// Єдина функція ціни — нею рахує і браузер, і сервер
+export function linePrice(l: Omit<CartLine, "qty">): number | undefined {
+  if (l.id === "custom") {
+    if (!isSize(l.size) || !l.toppings || l.toppings.length > builder.maxToppings) return undefined;
+    if (!l.toppings.every(isTopping) || new Set(l.toppings).size !== l.toppings.length) return undefined;
+    return builder.base[l.size] + l.toppings.reduce((s, t) => s + toppingPrice(t, l.size!), 0);
+  }
+  const pizza = pizzas.find((p) => p.id === l.id);
+  if (pizza) return isSize(l.size) ? pizza.prices[l.size] : undefined;
+  return extras.find((e) => e.id === l.id)?.price;
 }
 
-export const features = [
-  { icon: "🔥", title: "Справжня піч", text: "Піца печеться при високій температурі — хрусткий край і м'яка середина." },
-  { icon: "🧀", title: "Не шкодуємо сиру", text: "Справжня моцарела, яка тягнеться, а не «сирний продукт»." },
-  { icon: "🍅", title: "Свіжі продукти", text: "Тісто замішуємо щодня, овочі та зелень — тільки свіжі." },
-  { icon: "🛵", title: "Швидка доставка", text: `Привеземо гарячою за ${delivery.time}.` },
-];
+export function lineName(l: Omit<CartLine, "qty">): string {
+  if (l.id === "custom") return "Своя піца";
+  return pizzas.find((p) => p.id === l.id)?.name ?? extras.find((e) => e.id === l.id)?.name ?? "?";
+}
+
+export const lineKey = (l: Omit<CartLine, "qty">) => `${l.id}|${l.size ?? ""}|${(l.toppings ?? []).join(",")}`;

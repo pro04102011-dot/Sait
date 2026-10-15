@@ -1,21 +1,24 @@
 import { CartProvider } from "./components/Cart";
 import CartDrawer from "./components/CartDrawer";
 import Header from "./components/Header";
-import Hero from "./components/Hero";
-import Menu from "./components/Menu";
-import { About, Contacts, Delivery, Features, Footer } from "./components/Sections";
+import OvenHero from "./components/OvenHero";
+import Marquee from "./components/Marquee";
+import PizzaDial from "./components/PizzaDial";
+import Builder from "./components/Builder";
+import { Extras, Footer, Info } from "./components/Sections";
 
 export default function Home() {
   return (
     <CartProvider>
       <Header />
       <main>
-        <Hero />
-        <Menu />
-        <Features />
-        <Delivery />
-        <About />
-        <Contacts />
+        <OvenHero />
+        <Marquee words={["гаряча", "тягуча", "хрустка", "з печі", "з любов'ю"]} />
+        <PizzaDial />
+        <Builder />
+        <Marquee words={["доставка 40–60 хв", "самовивіз", "30 і 40 см", "без компромісів"]} reverse tone="cream" />
+        <Extras />
+        <Info />
       </main>
       <Footer />
       <CartDrawer />

@@ -1,9 +1,7 @@
-import { delivery, menu, priceOf, sizes, type Size } from "@/lib/data";
+import { delivery, isSize, isTopping, lineName, linePrice, toppingInfo } from "@/lib/data";
 
 // Замовлення з сайту надсилаються в Telegram.
 // На Vercel додати змінні оточення TELEGRAM_BOT_TOKEN і TELEGRAM_CHAT_ID.
-
-type Line = { id: unknown; size?: unknown; qty: unknown };
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -26,13 +24,19 @@ export async function POST(req: Request) {
   if (mode === "delivery" && !address) return Response.json({ ok: false, error: "Вкажіть адресу доставки" }, { status: 400 });
 
   // ціни рахуємо на сервері за меню — не довіряємо тому, що прийшло з браузера
-  const lines = (Array.isArray(body.items) ? (body.items as Line[]) : []).slice(0, 50).flatMap((l) => {
-    const item = menu.find((m) => m.id === l.id);
-    const size = sizes.some((s) => s.id === l.size) ? (l.size as Size) : undefined;
+  const raw = Array.isArray(body.items) ? body.items.slice(0, 50) : [];
+  const lines = raw.flatMap((l: Record<string, unknown>) => {
+    if (!l || typeof l.id !== "string") return [];
+    const line = {
+      id: l.id,
+      size: isSize(l.size) ? l.size : undefined,
+      toppings: Array.isArray(l.toppings) && l.toppings.every(isTopping) ? l.toppings : undefined,
+    };
     const qty = Number(l.qty);
-    const price = item && priceOf(item, size);
-    if (!item || !price || !Number.isInteger(qty) || qty < 1 || qty > 50) return [];
-    return [{ name: item.name, size, qty, sum: price * qty }];
+    const price = linePrice(line);
+    if (!price || !Number.isInteger(qty) || qty < 1 || qty > 50) return [];
+    const extra = line.toppings ? ` (${line.toppings.map((t) => toppingInfo[t].label.toLowerCase()).join(", ")})` : "";
+    return [{ title: `${lineName(line)}${line.size ? ` ${line.size} см` : ""}${extra}`, qty, sum: price * qty }];
   });
   if (lines.length === 0) return Response.json({ ok: false, error: "Кошик порожній" }, { status: 400 });
 
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
   const text = [
     "🍕 Нове замовлення з сайту",
     "",
-    ...lines.map((l) => `• ${l.name}${l.size ? ` ${l.size} см` : ""} × ${l.qty} — ${l.sum} ₴`),
+    ...lines.map((l) => `• ${l.title} × ${l.qty} — ${l.sum} ₴`),
     "",
     `Сума: ${total} ₴${fee ? ` + доставка ${fee} ₴` : ""}`,
     `До сплати: ${total + fee} ₴`,

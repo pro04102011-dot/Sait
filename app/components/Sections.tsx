@@ -1,101 +1,103 @@
-import { business, delivery, features } from "@/lib/data";
-import Pizza from "./Pizza";
+"use client";
 
-export function Features() {
+import { useState } from "react";
+import { business, delivery, extras } from "@/lib/data";
+import { useCart } from "./Cart";
+import FoodIcon from "./FoodIcon";
+
+export function Extras() {
+  const cart = useCart();
+  const [flash, setFlash] = useState<string | null>(null);
   return (
-    <section className="section section--alt">
-      <div className="container">
-        <h2 className="section__title">Чому «{business.name}»</h2>
-        <div className="features">
-          {features.map((f) => (
-            <div key={f.title} className="feature">
-              <div className="feature__icon">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
-            </div>
-          ))}
-        </div>
+    <section className="extras" id="extras">
+      <div className="wrap">
+        <h2 className="eyebrow">До піци</h2>
+        <p className="extras__title">Закуски й напої</p>
+      </div>
+      <div className="extras__rail">
+        {extras.map((e) => (
+          <article key={e.id} className="extra">
+            <FoodIcon icon={e.icon} className="extra__icon" />
+            <h3>{e.name}</h3>
+            <p>{e.note}</p>
+            <button
+              className={`extra__add ${flash === e.id ? "is-done" : ""}`}
+              onClick={() => {
+                cart.add({ id: e.id });
+                setFlash(e.id);
+                setTimeout(() => setFlash((f) => (f === e.id ? null : f)), 900);
+              }}
+              aria-label={`Додати «${e.name}» у кошик`}
+            >
+              <span>{e.price} ₴</span>
+              <b>{flash === e.id ? "✓" : "+"}</b>
+            </button>
+          </article>
+        ))}
       </div>
     </section>
   );
 }
 
-export function Delivery() {
-  const steps = [
-    { n: "1", title: "Обираєте", text: "Додаєте піцу та закуски в кошик на сайті або телефонуєте нам." },
-    { n: "2", title: "Готуємо", text: "Розкочуємо тісто, викладаємо начинку і відправляємо в піч." },
-    { n: "3", title: "Привозимо", text: `Кур'єр привезе замовлення гарячим за ${delivery.time}.` },
+function Barcode() {
+  // декоративний штрихкод з детермінованими смужками
+  const bars = Array.from({ length: 46 }, (_, i) => ((i * 7919) % 5) + 1);
+  let x = 0;
+  return (
+    <svg viewBox="0 0 200 40" className="receipt__barcode" aria-hidden preserveAspectRatio="none">
+      {bars.map((w, i) => {
+        const rect = i % 2 === 0 ? <rect key={i} x={x} y="0" width={w} height="40" /> : null;
+        x += w;
+        return rect;
+      })}
+    </svg>
+  );
+}
+
+export function Info() {
+  const rows: [string, React.ReactNode][] = [
+    ["Адреса", business.address],
+    ["Телефон", <a key="t" href={business.phoneHref}>{business.phone}</a>],
+    ["Працюємо", business.hours],
+    ["Доставка", `${delivery.time}, ${delivery.price} ₴`],
+    ["Безкоштовно", `від ${delivery.freeFrom} ₴`],
+    ["Самовивіз", "завжди безкоштовно"],
   ];
   return (
-    <section className="section" id="delivery">
-      <div className="container">
-        <h2 className="section__title">Доставка</h2>
-        <p className="section__sub">
-          Доставка — {delivery.price} ₴, а від {delivery.freeFrom} ₴ — безкоштовно. Самовивіз — завжди безкоштовно.
-        </p>
-        <ol className="steps">
-          {steps.map((s) => (
-            <li key={s.n} className="step">
-              <span className="step__n">{s.n}</span>
-              <h3>{s.title}</h3>
-              <p>{s.text}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-export function About() {
-  return (
-    <section className="section section--dark" id="about">
-      <div className="container about">
-        <div className="about__art">
-          <Pizza toppings={["mushroom", "bacon", "onion", "basil"]} seed="about" count={20} className="about__pizza" />
-        </div>
-        <div>
-          <h2 className="section__title section__title--left">Про нас</h2>
-          <p>
-            «{business.name}» — невелика піцерія для своїх. Ми не мережа і не фабрика: тісто замішуємо самі,
-            даємо йому дозріти, а кожну піцу збираємо руками перед тим, як відправити в піч.
-          </p>
-          <p>
-            Беремо прості й чесні продукти — справжню моцарелу, ароматний томатний соус і свіжі овочі.
-            Тому піца виходить такою, яку хочеться замовити ще раз.
-          </p>
-          <a href="#menu" className="btn">Подивитися меню</a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function Contacts() {
-  return (
-    <section className="section section--alt" id="contacts">
-      <div className="container contacts">
-        <div>
-          <h2 className="section__title section__title--left">Контакти</h2>
-          <ul className="info">
-            <li>📍 {business.address}</li>
-            <li>📞 <a href={business.phoneHref}>{business.phone}</a></li>
-            {business.hours.map((h) => (
-              <li key={h.days}>🕙 {h.days}: {h.time}</li>
-            ))}
-          </ul>
-          <div className="contacts__actions">
-            <a href={business.googleMaps} className="btn" target="_blank" rel="noopener noreferrer">Відкрити в Google Maps</a>
-            <a href={business.phoneHref} className="btn btn--ghost">Зателефонувати</a>
+    <section className="info" id="contacts">
+      <div className="wrap info__grid">
+        <div className="receipt">
+          <div className="receipt__head">
+            <strong>{business.name.toUpperCase()}</strong>
+            <span>ПІЦЕРІЯ · КИЇВ</span>
+            <span>ЧЕК № 000001</span>
           </div>
+          <dl className="receipt__rows">
+            {rows.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="receipt__total">
+            <span>НАСТРІЙ</span>
+            <span>100%</span>
+          </div>
+          <Barcode />
+          <p className="receipt__thanks">дякуємо, що ви з нами!</p>
         </div>
-        <div className="map">
-          <iframe
-            title={`${business.name} на карті`}
-            src="https://maps.google.com/maps?q=50.5117846,30.4666473&z=16&output=embed"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+
+        <div className="info__side">
+          <h2 className="eyebrow eyebrow--dark">Де нас знайти</h2>
+          <p className="info__title">Заходьте на скибочку</p>
+          <div className="info__map">
+            <iframe title={`${business.name} на карті`} src={business.mapEmbed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          </div>
+          <div className="info__actions">
+            <a href={business.googleMaps} className="btn btn--fire" target="_blank" rel="noopener noreferrer">Маршрут у Google Maps</a>
+            <a href={business.phoneHref} className="btn btn--line btn--line-dark">Зателефонувати</a>
+          </div>
         </div>
       </div>
     </section>
@@ -105,9 +107,11 @@ export function Contacts() {
 export function Footer() {
   return (
     <footer className="footer">
-      <div className="container footer__inner">
-        <span>© {business.name} — піцерія</span>
+      <p className="footer__word" aria-hidden>{business.name}</p>
+      <div className="wrap footer__row">
+        <span>© {business.name} — піца з печі</span>
         <a href={business.phoneHref}>{business.phone}</a>
+        <a href="#top">Нагору ↑</a>
       </div>
     </footer>
   );
